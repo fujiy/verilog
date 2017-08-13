@@ -32,22 +32,22 @@ module SevenSeg4d (
 
     function [6:0] decoder_16(input [3:0] in);
         case (in)
-            4'h0:    decoder_16 = 7'b1111110;
-            4'h1:    decoder_16 = 7'b0110000;
-            4'h2:    decoder_16 = 7'b1101101;
-            4'h3:    decoder_16 = 7'b1111001;
-            4'h4:    decoder_16 = 7'b0110011;
-            4'h5:    decoder_16 = 7'b1011011;
-            4'h6:    decoder_16 = 7'b1011111;
-            4'h7:    decoder_16 = 7'b1110000;
+            4'h0:    decoder_16 = 7'b0111111;
+            4'h1:    decoder_16 = 7'b0000110;
+            4'h2:    decoder_16 = 7'b1011011;
+            4'h3:    decoder_16 = 7'b1001111;
+            4'h4:    decoder_16 = 7'b1100110;
+            4'h5:    decoder_16 = 7'b1101101;
+            4'h6:    decoder_16 = 7'b1111101;
+            4'h7:    decoder_16 = 7'b0000111;
             4'h8:    decoder_16 = 7'b1111111;
-            4'h9:    decoder_16 = 7'b1111011;
+            4'h9:    decoder_16 = 7'b1101111;
             4'ha:    decoder_16 = 7'b1110111;
-            4'hb:    decoder_16 = 7'b0011111;
-            4'hc:    decoder_16 = 7'b1001110;
-            4'hd:    decoder_16 = 7'b0111101;
-            4'he:    decoder_16 = 7'b1001111;
-            4'hf:    decoder_16 = 7'b1000111;
+            4'hb:    decoder_16 = 7'b1111100;
+            4'hc:    decoder_16 = 7'b0111001;
+            4'hd:    decoder_16 = 7'b1011110;
+            4'he:    decoder_16 = 7'b1111001;
+            4'hf:    decoder_16 = 7'b1110001;
             default: decoder_16 = 7'b0000000;
         endcase
     endfunction

@@ -2,21 +2,21 @@
 
 module Core (clk, reset, AB, DI, DO, WE);
 
-    input  wire clk;        // clock
-    input  wire reset;      // reset signal
-    output wire [15:0] AB; // address bus
-    input  wire [7:0] DI;  // data in
-    output wire [7:0] DO;  // data out
-    output wire WE;        // write enable
+    input  wire clk;      // clock
+    input  wire reset;    // reset signal
+    output wire [8:0] AB; // address bus
+    input  wire [7:0] DI; // data in
+    output wire [7:0] DO; // data out
+    output wire WE;       // write enable
 
     // registers ---------------------------------------------------------------
 
-    reg [7:0]  AX; // accumulator
-    reg [7:0]  DX; // data register
-    reg [3:0]  IX; // index register
-    reg [14:0] SB; // stack base pointer
-    reg [7:0]  SP; // stack offset pointer
-    reg [14:0] IP; // instruction pointer
+    reg [7:0] AX; // accumulator
+    reg [7:0] DX; // data register
+    reg [3:0] IX; // index register
+    reg [7:0] SB; // stack base pointer
+    reg [7:0] SP; // stack offset pointer
+    reg [7:0] IP; // instruction pointer
 
     reg CF; // carry flag
     reg ZF; // zero flag
@@ -30,26 +30,29 @@ module Core (clk, reset, AB, DI, DO, WE);
 
     // control -----------------------------------------------------------------
 
-    reg AS; // address select state (program/data)
-    // wire AS = clk; // address select state (data/program)
+    reg [1:0] PS; // process state (program/load/store)
+    parameter PS_P = 2'b00, PS_L = 2'b01, PS_S = 2'b10;
 
     always @ (negedge clk or posedge reset) begin
-        if (reset) AS <= 0;
-        else       AS <= ~AS;
+        if      (reset)      PS <= 0;
+        else if (PS == PS_S) PS <= 0;
+        else                 PS <= PS + 1;
     end
 
-    wire i_clk = clk & AS;  // fetch instruction
-    wire r_clk = clk & ~AS; // update register
+    wire i_clk = clk && PS == PS_P; // fetch instruction
+    wire r_clk = clk && PS == PS_S; // update register
+    // assign mclk = ;
 
-    assign AB[15] = AS;
-    assign AB[14:0] = AS ? SB + stack_a : IP;
-    assign WE = AS && stack_w;
+    assign AB[8]   = PS != PS_P;
+    assign AB[7:0] = PS == PS_P ? IP : SB + stack_a;
+    assign WE      = PS == PS_S && stack_w;
+
 
     // instruction -------------------------------------------------------------
 
     reg [7:0] I; // instruction
 
-    always @ (posedge i_clk) begin
+    always @ (negedge i_clk) begin
         I <= DI;
     end
 
@@ -152,8 +155,8 @@ module Core (clk, reset, AB, DI, DO, WE);
             // IP
             if      (jump_sig)   IP <= IP + {{11{jump_a[4]}}, jump_a};
             else if (branch)     IP <= IP + 2;
-            else if (call_sig)   IP <= IP + {call_a[4], call_a <<< 8};
-            else if (return_sig) IP <= IP - {M[5], M[5:0] <<< 8};
+            else if (call_sig)   IP <= IP + {call_a[4], call_a <<< 2};
+            else if (return_sig) IP <= IP - {M[5], M[5:0] <<< 2};
             else                 IP <= IP + 1;
         end
     end
@@ -163,6 +166,9 @@ module Core (clk, reset, AB, DI, DO, WE);
     reg [7:0] stack_a; // address
     reg [7:0] MX;      // write buffer
     wire stack_w = enter_sig || call_sig || mov_to_m; // is write mode
+
+    assign DO = MX;
+
 
     always @ ( * ) begin
         // address

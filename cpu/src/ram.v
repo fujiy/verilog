@@ -13,11 +13,15 @@ module RAM(clk, addr, wdata, we, data);
 	reg [DataWidth-1:0] ram [2**AddrWidth-1:0];
 
 	assign data = ram[addr_buf];
-	
+
 	always@(posedge clk) begin
 		addr_buf = addr;
 		if(we) begin
 			ram[addr_buf] = wdata;
 		end
 	end
+
+    initial begin
+        $readmemh("ram.hex", ram);
+    end
 endmodule

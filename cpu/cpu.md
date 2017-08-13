@@ -2,19 +2,19 @@
 
 8bit プロセッサ
 
-8bit固定長命令，アドレス16bit
+8bit固定長命令，アドレス9bit
 
 ## レジスタ
 
-| Register | Size  | Name                 | 目的               |
-|----------|-------|----------------------|--------------------|
-| AX       | 8bit  | Accumulator Register | 演算               |
-| DX       | 8bit  | Data Register        | 汎用，即値         |
-| IX       | 4bit  | Index Register       | インデックス       |
-| SX       | 4bit  | Status Register      | フラグ             |
-| SB       | 15bit | Stack Base Pointer   | フレーム開始位置   |
-| SP       | 8bit  | Stack Pointer        | スタックオフセット |
-| IP       | 15bit | Instruction Pointer  | プログラム位置     |
+| Register | Size | Name                 | 目的               |
+|----------|------|----------------------|--------------------|
+| AX       | 8bit | Accumulator Register | 演算               |
+| DX       | 8bit | Data Register        | 汎用，即値         |
+| IX       | 4bit | Index Register       | インデックス       |
+| SX       | 4bit | Status Register      | フラグ             |
+| SB       | 8bit | Stack Base Pointer   | フレーム開始位置   |
+| SP       | 8bit | Stack Pointer        | スタックオフセット |
+| IP       | 8bit | Instruction Pointer  | プログラム位置     |
 
 Stack[i] = SM[SB+i]
 
@@ -29,10 +29,10 @@ Stack[i] = SM[SB+i]
 
 ## メモリ
 
-| Memory | Size      | Name           |
-|--------|-----------|----------------|
-| SM     | 2^15 byte | Stack Memory   |
-| PM     | 2^15 byte | Program Memory |
+| Memory | Size     | Name           |
+|--------|----------|----------------|
+| SM     | 2^8 byte | Stack Memory   |
+| PM     | 2^8 byte | Program Memory |
 
 ## 命令
 
@@ -69,8 +69,8 @@ Stack[i] = SM[SB+i]
 |-------------|---------------------------------|----------|---------------------------------------------|
 | ENTER i     | SB += SP, Stack[1] = SP, SP = i | 010iiiii | SP 退避，フレーム移動，ローカル変数領域確保 |
 | LEAVE       | SP = Stack[1], SB -= SP         | 00000010 | BP, SP 復元                                 |
-| CALL i      | IP ±= i << 8, Stack[SP] = i     | 11iiiiii | 関数 call                                   |
-| RETURN      | IP ∓= Stack[SP] << 8,           | 00000011 | 関数 return                                 |
+| CALL i      | IP ±= i << 2, Stack[SP] = i     | 11iiiiii | 関数 call                                   |
+| RETURN      | IP ∓= Stack[SP] << 2,           | 00000011 | 関数 return                                 |
 
 ### ジャンプ，分岐，フラグ
 
@@ -124,3 +124,9 @@ Stack[i] = SM[SB+i]
 7. 回復・・・Leave
 8. 復帰・・・Retuen
 9. 戻り値取り出し・・・戻り値 = AX
+
+### クロック
+
+1. 命令フェッチ，デコード
+2. データロード，処理
+3. レジスタ更新，データストア
