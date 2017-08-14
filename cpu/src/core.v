@@ -1,4 +1,4 @@
-`include "src/alu.v"
+`include "alu.v"
 
 module Core (clk, reset, AB, DI, DO, WE);
 
@@ -23,6 +23,8 @@ module Core (clk, reset, AB, DI, DO, WE);
     reg NF; // nagative flag
     reg VF; // overflow flag
 
+    reg STOP; // Stop
+
     // wires -------------------------------------------------------------------
 
     wire [3:0] SX = {VF, NF, ZF, CF}; // status register
@@ -39,8 +41,8 @@ module Core (clk, reset, AB, DI, DO, WE);
         else                 PS <= PS + 1;
     end
 
-    wire i_clk = clk && PS == PS_P; // fetch instruction
-    wire r_clk = clk && PS == PS_S; // update register
+    wire i_clk = ~STOP && clk && PS == PS_P; // fetch instruction
+    wire r_clk = ~STOP && clk && PS == PS_S; // update register
     // assign mclk = ;
 
     assign AB[8]   = PS != PS_P;
@@ -63,15 +65,15 @@ module Core (clk, reset, AB, DI, DO, WE);
     wire return_sig       = I == 8'b00000011;   // return
 
     wire flag_sig         = I[7:1] == 7'b0000010; // carry flag
-    wire flag_d           = I[0];               // clear/set
+    wire flag_d           = I[0];                 // clear/set
 
     wire arith_sig        = I[7:3] == 5'b00001; // useing ALU
     wire arith_bi         = I[0];     // DX/memory
     wire [1:0] arith_op   = I[2:1];   // ALU opcode
 
     wire mov_sig          = I[7:3] == 5'b00010; // mov/load/store
-    wire mov_to_ax        = mov_sig && ~I[2] && ~I[0];  // to AX
-    wire mov_to_dx        = mov_sig && ~I[2] && I[0]; // to DX
+    wire mov_to_ax        = mov_sig && ~I[2] && ~I[0]; // to AX
+    wire mov_to_dx        = mov_sig && ~I[2] && I[0];  // to DX
     wire mov_to_m         = mov_sig && I[2];           // to memory
     wire [1:0] mov_from   = I[2:1] == 2'b00 ? {1'b0, ~I[0]} // from AX/DX
                           : I[2:1] == 2'b01 ? 2'b10         // from memory
@@ -121,8 +123,12 @@ module Core (clk, reset, AB, DI, DO, WE);
             ZF <= 0;
             NF <= 0;
             VF <= 0;
+            STOP <= 0;
         end
         else begin
+            // STOP
+            if (halt_sig) STOP <= 1;
+
             // AX
             if      (arith_sig) AX <= alu_o;
             else if (mov_to_ax) AX <= mov_data;
