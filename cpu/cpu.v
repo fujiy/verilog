@@ -19,7 +19,6 @@ module cpu (clk, reset, btn, led, a, k);
     wire [7:0] w_data;
     wire [7:0] r_data;
     wire we;
-    wire mclk;
 
     wire clock = btns[0];
     // wire clock = clk;
